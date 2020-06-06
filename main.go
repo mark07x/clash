@@ -16,7 +16,19 @@ import (
 	"github.com/mark07x/clash/log"
 )
 
-func Main(homeDir string, configFile string, externalUI string, externalController string, secret string, version bool, testConfig bool, flagset map[string]bool) {
+type BridgeFunctions interface {
+	Print(str string)
+	Error(str string)
+	Log(str string, level string)
+}
+var BridgeFunc BridgeFunctions
+
+func InitBridge(fun BridgeFunctions) {
+	BridgeFunc = fun
+}
+
+func Main(homeDir string, configFile string, externalUI string, externalController string, secret string, version bool, testConfig bool) {
+	BridgeFunc.Print("Hello World!")
 	if version {
 		fmt.Printf("Clash %s %s %s %s\n", C.Version, runtime.GOOS, runtime.GOARCH, C.BuildTime)
 		return
@@ -56,13 +68,13 @@ func Main(homeDir string, configFile string, externalUI string, externalControll
 	}
 
 	var options []hub.Option
-	if flagset["ext-ui"] {
+	if externalUI != "" {
 		options = append(options, hub.WithExternalUI(externalUI))
 	}
-	if flagset["ext-ctl"] {
+	if externalController != "" {
 		options = append(options, hub.WithExternalController(externalController))
 	}
-	if flagset["secret"] {
+	if secret != "" {
 		options = append(options, hub.WithSecret(secret))
 	}
 
