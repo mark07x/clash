@@ -1,18 +1,18 @@
 <h1 align="center">
-  <img src="https://github.com/Dreamacro/clash/raw/master/docs/logo.png" alt="Clash" width="200">
+  <img src="https://github.com/mark07x/clash/raw/master/docs/logo.png" alt="Clash" width="200">
   <br>Clash<br>
 </h1>
 
 <h4 align="center">A rule-based tunnel in Go.</h4>
 
 <p align="center">
-  <a href="https://github.com/Dreamacro/clash/actions">
+  <a href="https://github.com/mark07x/clash/actions">
     <img src="https://img.shields.io/github/workflow/status/Dreamacro/clash/Go?style=flat-square" alt="Github Actions">
   </a>
-  <a href="https://goreportcard.com/report/github.com/Dreamacro/clash">
-    <img src="https://goreportcard.com/badge/github.com/Dreamacro/clash?style=flat-square">
+  <a href="https://goreportcard.com/report/github.com/mark07x/clash">
+    <img src="https://goreportcard.com/badge/github.com/mark07x/clash?style=flat-square">
   </a>
-  <a href="https://github.com/Dreamacro/clash/releases">
+  <a href="https://github.com/mark07x/clash/releases">
     <img src="https://img.shields.io/github/release/Dreamacro/clash/all.svg?style=flat-square">
   </a>
 </p>
@@ -33,11 +33,11 @@
 Clash requires Go >= 1.13. You can build it from source:
 
 ```sh
-$ go get -u -v github.com/Dreamacro/clash
+$ go get -u -v github.com/mark07x/clash
 ```
 
-Pre-built binaries are available here: [release](https://github.com/Dreamacro/clash/releases)  
-Pre-built Premium binaries are available here: [Premium release](https://github.com/Dreamacro/clash/releases/tag/premium). Source is not currently available.
+Pre-built binaries are available here: [release](https://github.com/mark07x/clash/releases)  
+Pre-built Premium binaries are available here: [Premium release](https://github.com/mark07x/clash/releases/tag/premium). Source is not currently available.
 
 Check Clash version with:
 
@@ -55,7 +55,7 @@ In the case of [pm2](https://github.com/Unitech/pm2), start the daemon this way:
 $ pm2 start clash
 ```
 
-If you have Docker installed, it's recommended to deploy Clash directly using `docker-compose`: [run Clash in Docker](https://github.com/Dreamacro/clash/wiki/Run-clash-in-docker)
+If you have Docker installed, it's recommended to deploy Clash directly using `docker-compose`: [run Clash in Docker](https://github.com/mark07x/clash/wiki/Run-clash-in-docker)
 
 ## Config
 
@@ -369,7 +369,7 @@ rules:
 </details>
 
 ## Advanced
-[Provider](https://github.com/Dreamacro/clash/wiki/Provider)
+[Provider](https://github.com/mark07x/clash/wiki/Provider)
 
 ## Documentations
 https://clash.gitbook.io/

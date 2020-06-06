@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/Dreamacro/clash/component/dialer"
+	"github.com/mark07x/clash/component/dialer"
 )
 
 // Vehicle Type

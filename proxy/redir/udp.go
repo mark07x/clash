@@ -3,11 +3,11 @@ package redir
 import (
 	"net"
 
-	adapters "github.com/Dreamacro/clash/adapters/inbound"
-	"github.com/Dreamacro/clash/common/pool"
-	"github.com/Dreamacro/clash/component/socks5"
-	C "github.com/Dreamacro/clash/constant"
-	"github.com/Dreamacro/clash/tunnel"
+	adapters "github.com/mark07x/clash/adapters/inbound"
+	"github.com/mark07x/clash/common/pool"
+	"github.com/mark07x/clash/component/socks5"
+	C "github.com/mark07x/clash/constant"
+	"github.com/mark07x/clash/tunnel"
 )
 
 type RedirUDPListener struct {

@@ -3,8 +3,8 @@ package outbound
 import (
 	"fmt"
 
-	"github.com/Dreamacro/clash/common/structure"
-	C "github.com/Dreamacro/clash/constant"
+	"github.com/mark07x/clash/common/structure"
+	C "github.com/mark07x/clash/constant"
 )
 
 func ParseProxy(mapping map[string]interface{}) (C.Proxy, error) {

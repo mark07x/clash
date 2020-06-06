@@ -3,8 +3,8 @@ package inbound
 import (
 	"net"
 
-	"github.com/Dreamacro/clash/component/socks5"
-	C "github.com/Dreamacro/clash/constant"
+	"github.com/mark07x/clash/component/socks5"
+	C "github.com/mark07x/clash/constant"
 )
 
 // SocketAdapter is a adapter for socks and redir connection

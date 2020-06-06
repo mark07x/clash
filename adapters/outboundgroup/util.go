@@ -5,7 +5,7 @@ import (
 	"net"
 	"time"
 
-	C "github.com/Dreamacro/clash/constant"
+	C "github.com/mark07x/clash/constant"
 )
 
 func addrToMetadata(rawAddress string) (addr *C.Metadata, err error) {

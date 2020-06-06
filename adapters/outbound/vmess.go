@@ -9,10 +9,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Dreamacro/clash/component/dialer"
-	"github.com/Dreamacro/clash/component/resolver"
-	"github.com/Dreamacro/clash/component/vmess"
-	C "github.com/Dreamacro/clash/constant"
+	"github.com/mark07x/clash/component/dialer"
+	"github.com/mark07x/clash/component/resolver"
+	"github.com/mark07x/clash/component/vmess"
+	C "github.com/mark07x/clash/constant"
 )
 
 type Vmess struct {

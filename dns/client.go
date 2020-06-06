@@ -6,7 +6,7 @@ import (
 	"net"
 	"strings"
 
-	"github.com/Dreamacro/clash/component/dialer"
+	"github.com/mark07x/clash/component/dialer"
 
 	D "github.com/miekg/dns"
 )

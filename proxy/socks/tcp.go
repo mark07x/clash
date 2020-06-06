@@ -5,12 +5,12 @@ import (
 	"io/ioutil"
 	"net"
 
-	adapters "github.com/Dreamacro/clash/adapters/inbound"
-	"github.com/Dreamacro/clash/component/socks5"
-	C "github.com/Dreamacro/clash/constant"
-	"github.com/Dreamacro/clash/log"
-	authStore "github.com/Dreamacro/clash/proxy/auth"
-	"github.com/Dreamacro/clash/tunnel"
+	adapters "github.com/mark07x/clash/adapters/inbound"
+	"github.com/mark07x/clash/component/socks5"
+	C "github.com/mark07x/clash/constant"
+	"github.com/mark07x/clash/log"
+	authStore "github.com/mark07x/clash/proxy/auth"
+	"github.com/mark07x/clash/tunnel"
 )
 
 type SockListener struct {

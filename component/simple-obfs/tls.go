@@ -8,7 +8,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/Dreamacro/clash/common/pool"
+	"github.com/mark07x/clash/common/pool"
 )
 
 func init() {
