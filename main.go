@@ -1,7 +1,6 @@
 package clash
 
 import (
-	"fmt"
 	"github.com/mark07x/clash/bridge"
 	"os"
 	"os/signal"
@@ -28,7 +27,7 @@ func InitBridge(fun BridgeFunctions) {
 func Main(homeDir string, configFile string, externalUI string, externalController string, secret string, version bool, testConfig bool) {
 	bridge.Func.Print("Hello World!")
 	if version {
-		fmt.Printf("Clash %s %s %s %s\n", C.Version, runtime.GOOS, runtime.GOARCH, C.BuildTime)
+		bridge.Printf("Clash %s %s %s %s\n", C.Version, runtime.GOOS, runtime.GOARCH, C.BuildTime)
 		return
 	}
 
@@ -58,10 +57,10 @@ func Main(homeDir string, configFile string, externalUI string, externalControll
 	if testConfig {
 		if _, err := executor.Parse(); err != nil {
 			log.Errorln(err.Error())
-			fmt.Printf("configuration file %s test failed\n", constant.Path.Config())
+			bridge.Printf("configuration file %s test failed\n", constant.Path.Config())
 			os.Exit(1)
 		}
-		fmt.Printf("configuration file %s test is successful\n", constant.Path.Config())
+		bridge.Printf("configuration file %s test is successful\n", constant.Path.Config())
 		return
 	}
 
