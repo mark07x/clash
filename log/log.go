@@ -2,6 +2,7 @@ package log
 
 import (
 	"fmt"
+	"github.com/mark07x/clash/bridge"
 	"os"
 
 	"github.com/mark07x/clash/common/observable"
@@ -54,7 +55,7 @@ func Debugln(format string, v ...interface{}) {
 }
 
 func Fatalln(format string, v ...interface{}) {
-	log.Fatalf(format, v...)
+	bridge.Func.Log(fmt.Sprintf(format, v...), "fatal")
 }
 
 func Subscribe() observable.Subscription {
@@ -82,13 +83,13 @@ func print(data *Event) {
 
 	switch data.LogLevel {
 	case INFO:
-		log.Infoln(data.Payload)
+		bridge.Func.Log(data.Payload, "info")
 	case WARNING:
-		log.Warnln(data.Payload)
+		bridge.Func.Log(data.Payload, "warning")
 	case ERROR:
-		log.Errorln(data.Payload)
+		bridge.Func.Log(data.Payload, "error")
 	case DEBUG:
-		log.Debugln(data.Payload)
+		bridge.Func.Log(data.Payload, "debug")
 	}
 }
 

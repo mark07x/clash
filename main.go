@@ -2,6 +2,7 @@ package clash
 
 import (
 	"fmt"
+	"github.com/mark07x/clash/bridge"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -18,17 +19,14 @@ import (
 
 type BridgeFunctions interface {
 	Print(str string)
-	Error(str string)
 	Log(str string, level string)
 }
-var BridgeFunc BridgeFunctions
-
 func InitBridge(fun BridgeFunctions) {
-	BridgeFunc = fun
+	bridge.Func = fun
 }
 
 func Main(homeDir string, configFile string, externalUI string, externalController string, secret string, version bool, testConfig bool) {
-	BridgeFunc.Print("Hello World!")
+	bridge.Func.Print("Hello World!")
 	if version {
 		fmt.Printf("Clash %s %s %s %s\n", C.Version, runtime.GOOS, runtime.GOARCH, C.BuildTime)
 		return
