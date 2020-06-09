@@ -2,22 +2,22 @@ package clash
 
 import (
 	"github.com/mark07x/clash/bridge"
-	"os"
-	"os/signal"
-	"path/filepath"
-	"runtime"
-	"syscall"
-
 	"github.com/mark07x/clash/config"
 	"github.com/mark07x/clash/constant"
 	C "github.com/mark07x/clash/constant"
 	"github.com/mark07x/clash/hub"
 	"github.com/mark07x/clash/hub/executor"
 	"github.com/mark07x/clash/log"
+	"os"
+	"os/signal"
+	"path/filepath"
+	"runtime"
+	"syscall"
 )
 
 type BridgeFunctions interface {
 	Print(str string)
+	Fatal(str string)
 	Log(str string, level string)
 }
 func InitBridge(fun BridgeFunctions) {
@@ -25,7 +25,7 @@ func InitBridge(fun BridgeFunctions) {
 }
 
 func Main(homeDir string, configFile string, externalUI string, externalController string, secret string, version bool, testConfig bool) {
-	bridge.Func.Print("Hello World!")
+	bridge.Func.Print("iClash core is started")
 	if version {
 		bridge.Printf("Clash %s %s %s %s\n", C.Version, runtime.GOOS, runtime.GOARCH, C.BuildTime)
 		return

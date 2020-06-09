@@ -55,7 +55,7 @@ func Debugln(format string, v ...interface{}) {
 }
 
 func Fatalln(format string, v ...interface{}) {
-	bridge.Func.Log(fmt.Sprintf(format, v...), "fatal")
+	bridge.Func.Fatal(fmt.Sprintf(format, v...))
 }
 
 func Subscribe() observable.Subscription {
@@ -83,13 +83,13 @@ func print(data *Event) {
 
 	switch data.LogLevel {
 	case INFO:
-		bridge.Func.Log(data.Payload, "info")
+		bridge.Func.Log(data.Payload, "Info")
 	case WARNING:
-		bridge.Func.Log(data.Payload, "warning")
+		bridge.Func.Log(data.Payload, "Warning")
 	case ERROR:
-		bridge.Func.Log(data.Payload, "error")
+		bridge.Func.Log(data.Payload, "Error")
 	case DEBUG:
-		bridge.Func.Log(data.Payload, "debug")
+		bridge.Func.Log(data.Payload, "Debug")
 	}
 }
 

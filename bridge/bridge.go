@@ -4,6 +4,7 @@ import "fmt"
 
 type Functions interface {
 	Print(str string)
+	Fatal(str string)
 	Log(str string, level string)
 }
 var Func Functions
