@@ -19,6 +19,7 @@ type BridgeFunctions interface {
 	Print(str string)
 	Fatal(str string)
 	Log(str string, level string)
+	On(name string)
 }
 func InitBridge(fun BridgeFunctions) {
 	bridge.Func = fun

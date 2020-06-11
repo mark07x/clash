@@ -1,6 +1,7 @@
 package socks
 
 import (
+	"github.com/mark07x/clash/bridge"
 	"io"
 	"io/ioutil"
 	"net"
@@ -28,6 +29,7 @@ func NewSocksProxy(addr string) (*SockListener, error) {
 	sl := &SockListener{l, addr, false}
 	go func() {
 		log.Infoln("SOCKS proxy listening at: %s", addr)
+		bridge.Func.On("SOCKS START")
 		for {
 			c, err := l.Accept()
 			if err != nil {

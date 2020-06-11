@@ -3,6 +3,7 @@ package route
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/mark07x/clash/bridge"
 	"net/http"
 	"strings"
 	"time"
@@ -82,6 +83,7 @@ func Start(addr string, secret string) {
 	}
 
 	log.Infoln("RESTful API listening at: %s", addr)
+	bridge.Func.On("RESTFUL START")
 	err := http.ListenAndServe(addr, r)
 	if err != nil {
 		log.Errorln("External controller error: %s", err.Error())

@@ -3,6 +3,7 @@ package http
 import (
 	"bufio"
 	"encoding/base64"
+	"github.com/mark07x/clash/bridge"
 	"net"
 	"net/http"
 	"strings"
@@ -32,6 +33,7 @@ func NewHttpProxy(addr string) (*HttpListener, error) {
 
 	go func() {
 		log.Infoln("HTTP proxy listening at: %s", addr)
+		bridge.Func.On("HTTP START")
 
 		for {
 			c, err := hl.Accept()

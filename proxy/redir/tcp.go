@@ -1,6 +1,7 @@
 package redir
 
 import (
+	"github.com/mark07x/clash/bridge"
 	"net"
 
 	"github.com/mark07x/clash/adapters/inbound"
@@ -24,6 +25,7 @@ func NewRedirProxy(addr string) (*RedirListener, error) {
 
 	go func() {
 		log.Infoln("Redir proxy listening at: %s", addr)
+		bridge.Func.On("REDIR START")
 		for {
 			c, err := l.Accept()
 			if err != nil {

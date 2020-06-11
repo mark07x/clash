@@ -6,6 +6,7 @@ type Functions interface {
 	Print(str string)
 	Fatal(str string)
 	Log(str string, level string)
+	On(name string)
 }
 var Func Functions
 

@@ -2,6 +2,7 @@ package executor
 
 import (
 	"fmt"
+	"github.com/mark07x/clash/bridge"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -150,6 +151,7 @@ func updateDNS(c *config.DNS) {
 
 	if c.Listen != "" {
 		log.Infoln("DNS server listening at: %s", c.Listen)
+		bridge.Func.On("DNS START")
 	}
 }
 
