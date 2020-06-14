@@ -1,6 +1,8 @@
 package clash
 
 import (
+	"github.com/eycorsican/go-tun2socks/core"
+	"github.com/eycorsican/go-tun2socks/proxy/socks"
 	"github.com/mark07x/clash/bridge"
 	"github.com/mark07x/clash/config"
 	"github.com/mark07x/clash/constant"
@@ -12,7 +14,9 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime"
+	"runtime/debug"
 	"syscall"
+	"time"
 )
 
 type BridgeFunctions interface {
@@ -25,7 +29,45 @@ func InitBridge(fun BridgeFunctions) {
 	bridge.Func = fun
 }
 
+type T2SSubProgramPacketFlow interface {
+	WritePacket(packet []byte)
+}
+
+var lwipStack core.LWIPStack
+
+func InputPacket(data []byte) {
+	lwipStack.Write(data)
+}
+
+func T2SSubProgramStartSocks(packetFlow T2SSubProgramPacketFlow, proxyHost string, proxyPort int) {
+	debug.SetGCPercent(10)
+	ticker := time.NewTicker(time.Second * 15)
+	go func() {
+		for range ticker.C {
+			debug.FreeOSMemory()
+		}
+	}()
+	bridge.Func.Print("iClash T2S Subprogram is started")
+	if packetFlow != nil {
+		lwipStack = core.NewLWIPStack()
+		core.RegisterTCPConnHandler(socks.NewTCPHandler(proxyHost, uint16(proxyPort)))
+		core.RegisterUDPConnHandler(socks.NewUDPHandler(proxyHost, uint16(proxyPort), 2*time.Minute))
+		core.RegisterOutputFn(func(data []byte) (int, error) {
+			packetFlow.WritePacket(data)
+			return len(data), nil
+		})
+	}
+}
+
+
 func Main(homeDir string, configFile string, externalUI string, externalController string, secret string, version bool, testConfig bool) {
+	debug.SetGCPercent(10)
+	ticker := time.NewTicker(time.Second * 15)
+	go func() {
+		for range ticker.C {
+			debug.FreeOSMemory()
+		}
+	}()
 	bridge.Func.Print("iClash core is started")
 	if version {
 		bridge.Printf("Clash %s %s %s %s\n", C.Version, runtime.GOOS, runtime.GOARCH, C.BuildTime)
