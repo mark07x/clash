@@ -1,6 +1,7 @@
 package redir
 
 import (
+	"github.com/gofrs/uuid"
 	"github.com/mark07x/clash/bridge"
 	"net"
 
@@ -34,7 +35,8 @@ func NewRedirProxy(addr string) (*RedirListener, error) {
 				}
 				continue
 			}
-			go handleRedir(c)
+			id := tunnel.SharedToken.MakeToken()
+			go handleRedir(c, id)
 		}
 	}()
 
@@ -50,12 +52,13 @@ func (l *RedirListener) Address() string {
 	return l.address
 }
 
-func handleRedir(conn net.Conn) {
+func handleRedir(conn net.Conn, id uuid.UUID) {
 	target, err := parserPacket(conn)
 	if err != nil {
 		conn.Close()
+		tunnel.SharedToken.ReleaseToken(id)
 		return
 	}
 	conn.(*net.TCPConn).SetKeepAlive(true)
-	tunnel.Add(inbound.NewSocket(target, conn, C.REDIR))
+	tunnel.Add(inbound.NewSocket(target, conn, C.REDIR, id))
 }

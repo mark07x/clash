@@ -1,6 +1,7 @@
 package socks
 
 import (
+	"github.com/gofrs/uuid"
 	"net"
 
 	adapters "github.com/mark07x/clash/adapters/inbound"
@@ -40,7 +41,8 @@ func NewSocksUDPProxy(addr string) (*SockUDPListener, error) {
 				}
 				continue
 			}
-			handleSocksUDP(l, buf[:n], remoteAddr)
+			id := tunnel.SharedToken.MakeToken()
+			handleSocksUDP(l, buf[:n], remoteAddr, id)
 		}
 	}()
 
@@ -56,11 +58,12 @@ func (l *SockUDPListener) Address() string {
 	return l.address
 }
 
-func handleSocksUDP(pc net.PacketConn, buf []byte, addr net.Addr) {
+func handleSocksUDP(pc net.PacketConn, buf []byte, addr net.Addr, id uuid.UUID) {
 	target, payload, err := socks5.DecodeUDPPacket(buf)
 	if err != nil {
 		// Unresolved UDP packet, return buffer to the pool
 		pool.Put(buf)
+		tunnel.SharedToken.ReleaseToken(id)
 		return
 	}
 	packet := &packet{
@@ -69,5 +72,5 @@ func handleSocksUDP(pc net.PacketConn, buf []byte, addr net.Addr) {
 		payload: payload,
 		bufRef:  buf,
 	}
-	tunnel.AddPacket(adapters.NewPacket(target, packet, C.SOCKS))
+	tunnel.AddPacket(adapters.NewPacket(target, packet, C.SOCKS, id))
 }

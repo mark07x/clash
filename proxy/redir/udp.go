@@ -1,6 +1,7 @@
 package redir
 
 import (
+	"github.com/gofrs/uuid"
 	"net"
 
 	adapters "github.com/mark07x/clash/adapters/inbound"
@@ -48,7 +49,8 @@ func NewRedirUDPProxy(addr string) (*RedirUDPListener, error) {
 			if err != nil {
 				continue
 			}
-			handleRedirUDP(l, buf[:n], lAddr, rAddr)
+			id := tunnel.SharedToken.MakeToken()
+			handleRedirUDP(l, buf[:n], lAddr, rAddr, id)
 		}
 	}()
 
@@ -64,11 +66,11 @@ func (l *RedirUDPListener) Address() string {
 	return l.address
 }
 
-func handleRedirUDP(pc net.PacketConn, buf []byte, lAddr *net.UDPAddr, rAddr *net.UDPAddr) {
+func handleRedirUDP(pc net.PacketConn, buf []byte, lAddr *net.UDPAddr, rAddr *net.UDPAddr, id uuid.UUID) {
 	target := socks5.ParseAddrToSocksAddr(rAddr)
 	pkt := &packet{
 		lAddr: lAddr,
 		buf:   buf,
 	}
-	tunnel.AddPacket(adapters.NewPacket(target, pkt, C.REDIR))
+	tunnel.AddPacket(adapters.NewPacket(target, pkt, C.REDIR, id))
 }

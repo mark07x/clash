@@ -1,6 +1,7 @@
 package inbound
 
 import (
+	"github.com/gofrs/uuid"
 	"net"
 	"net/http"
 	"strings"
@@ -13,6 +14,7 @@ type HTTPAdapter struct {
 	net.Conn
 	metadata *C.Metadata
 	R        *http.Request
+	ID uuid.UUID
 }
 
 // Metadata return destination metadata
@@ -20,8 +22,13 @@ func (h *HTTPAdapter) Metadata() *C.Metadata {
 	return h.metadata
 }
 
+func (h *HTTPAdapter) GetTokenID() uuid.UUID {
+	return h.ID
+}
+
+
 // NewHTTP is HTTPAdapter generator
-func NewHTTP(request *http.Request, conn net.Conn) *HTTPAdapter {
+func NewHTTP(request *http.Request, conn net.Conn, id uuid.UUID) *HTTPAdapter {
 	metadata := parseHTTPAddr(request)
 	metadata.Type = C.HTTP
 	if ip, port, err := parseAddr(conn.RemoteAddr().String()); err == nil {
@@ -32,6 +39,7 @@ func NewHTTP(request *http.Request, conn net.Conn) *HTTPAdapter {
 		metadata: metadata,
 		R:        request,
 		Conn:     conn,
+		ID: id,
 	}
 }
 

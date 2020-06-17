@@ -3,6 +3,7 @@ package constant
 import (
 	"context"
 	"fmt"
+	"github.com/gofrs/uuid"
 	"net"
 	"time"
 )
@@ -29,6 +30,7 @@ const (
 type ServerAdapter interface {
 	net.Conn
 	Metadata() *Metadata
+	GetTokenID() uuid.UUID
 }
 
 type Connection interface {

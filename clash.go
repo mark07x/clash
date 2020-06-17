@@ -10,6 +10,7 @@ import (
 	"github.com/mark07x/clash/hub"
 	"github.com/mark07x/clash/hub/executor"
 	"github.com/mark07x/clash/log"
+	"github.com/mark07x/clash/tunnel"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -40,13 +41,6 @@ func InputPacket(data []byte) {
 }
 
 func T2SSubProgramStartSocks(packetFlow T2SSubProgramPacketFlow, proxyHost string, proxyPort int) {
-	debug.SetGCPercent(10)
-	ticker := time.NewTicker(time.Second * 15)
-	go func() {
-		for range ticker.C {
-			debug.FreeOSMemory()
-		}
-	}()
 	bridge.Func.Print("iClash T2S Subprogram is started")
 	if packetFlow != nil {
 		lwipStack = core.NewLWIPStack()
@@ -62,7 +56,10 @@ func T2SSubProgramStartSocks(packetFlow T2SSubProgramPacketFlow, proxyHost strin
 
 func Main(homeDir string, configFile string, externalUI string, externalController string, secret string, version bool, testConfig bool) {
 	debug.SetGCPercent(10)
-	ticker := time.NewTicker(time.Second * 15)
+	ticker := time.NewTicker(time.Second * 45)
+	for i := 0; i < 10; i++ {
+		tunnel.SharedToken.PushToken()
+	}
 	go func() {
 		for range ticker.C {
 			debug.FreeOSMemory()

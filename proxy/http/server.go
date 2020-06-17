@@ -3,6 +3,7 @@ package http
 import (
 	"bufio"
 	"encoding/base64"
+	"github.com/gofrs/uuid"
 	"github.com/mark07x/clash/bridge"
 	"net"
 	"net/http"
@@ -43,7 +44,8 @@ func NewHttpProxy(addr string) (*HttpListener, error) {
 				}
 				continue
 			}
-			go handleConn(c, hl.cache)
+			id := tunnel.SharedToken.MakeToken()
+			go handleConn(c, hl.cache, id)
 		}
 	}()
 
@@ -71,11 +73,12 @@ func canActivate(loginStr string, authenticator auth.Authenticator, cache *cache
 	return
 }
 
-func handleConn(conn net.Conn, cache *cache.Cache) {
+func handleConn(conn net.Conn, cache *cache.Cache, id uuid.UUID) {
 	br := bufio.NewReader(conn)
 	request, err := http.ReadRequest(br)
 	if err != nil || request.URL.Host == "" {
 		conn.Close()
+		tunnel.SharedToken.ReleaseToken(id)
 		return
 	}
 
@@ -84,11 +87,13 @@ func handleConn(conn net.Conn, cache *cache.Cache) {
 		if authStrings := strings.Split(request.Header.Get("Proxy-Authorization"), " "); len(authStrings) != 2 {
 			_, err = conn.Write([]byte("HTTP/1.1 407 Proxy Authentication Required\r\nProxy-Authenticate: Basic\r\n\r\n"))
 			conn.Close()
+			tunnel.SharedToken.ReleaseToken(id)
 			return
 		} else if !canActivate(authStrings[1], authenticator, cache) {
 			conn.Write([]byte("HTTP/1.1 403 Forbidden\r\n\r\n"))
 			log.Infoln("Auth failed from %s", conn.RemoteAddr().String())
 			conn.Close()
+			tunnel.SharedToken.ReleaseToken(id)
 			return
 		}
 	}
@@ -96,11 +101,12 @@ func handleConn(conn net.Conn, cache *cache.Cache) {
 	if request.Method == http.MethodConnect {
 		_, err := conn.Write([]byte("HTTP/1.1 200 Connection established\r\n\r\n"))
 		if err != nil {
+			tunnel.SharedToken.ReleaseToken(id)
 			return
 		}
-		tunnel.Add(adapters.NewHTTPS(request, conn))
+		tunnel.Add(adapters.NewHTTPS(request, conn, id))
 		return
 	}
 
-	tunnel.Add(adapters.NewHTTP(request, conn))
+	tunnel.Add(adapters.NewHTTP(request, conn, id))
 }

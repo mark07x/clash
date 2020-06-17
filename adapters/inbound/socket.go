@@ -1,6 +1,7 @@
 package inbound
 
 import (
+	"github.com/gofrs/uuid"
 	"net"
 
 	"github.com/mark07x/clash/component/socks5"
@@ -11,6 +12,7 @@ import (
 type SocketAdapter struct {
 	net.Conn
 	metadata *C.Metadata
+	ID uuid.UUID
 }
 
 // Metadata return destination metadata
@@ -18,8 +20,12 @@ func (s *SocketAdapter) Metadata() *C.Metadata {
 	return s.metadata
 }
 
+func (s *SocketAdapter) GetTokenID() uuid.UUID {
+	return s.ID
+}
+
 // NewSocket is SocketAdapter generator
-func NewSocket(target socks5.Addr, conn net.Conn, source C.Type) *SocketAdapter {
+func NewSocket(target socks5.Addr, conn net.Conn, source C.Type, id uuid.UUID) *SocketAdapter {
 	metadata := parseSocksAddr(target)
 	metadata.NetWork = C.TCP
 	metadata.Type = source
@@ -31,5 +37,6 @@ func NewSocket(target socks5.Addr, conn net.Conn, source C.Type) *SocketAdapter 
 	return &SocketAdapter{
 		Conn:     conn,
 		metadata: metadata,
+		ID: id,
 	}
 }

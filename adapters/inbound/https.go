@@ -1,6 +1,7 @@
 package inbound
 
 import (
+	"github.com/gofrs/uuid"
 	"net"
 	"net/http"
 
@@ -8,7 +9,7 @@ import (
 )
 
 // NewHTTPS is HTTPAdapter generator
-func NewHTTPS(request *http.Request, conn net.Conn) *SocketAdapter {
+func NewHTTPS(request *http.Request, conn net.Conn, id uuid.UUID) *SocketAdapter {
 	metadata := parseHTTPAddr(request)
 	metadata.Type = C.HTTPCONNECT
 	if ip, port, err := parseAddr(conn.RemoteAddr().String()); err == nil {
@@ -18,5 +19,6 @@ func NewHTTPS(request *http.Request, conn net.Conn) *SocketAdapter {
 	return &SocketAdapter{
 		metadata: metadata,
 		Conn:     conn,
+		ID:       id,
 	}
 }

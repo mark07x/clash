@@ -15,7 +15,7 @@ import (
 	"github.com/mark07x/clash/dns"
 	"github.com/mark07x/clash/log"
 
-	channels "gopkg.in/eapache/channels.v1"
+	"gopkg.in/eapache/channels.v1"
 )
 
 var (
@@ -182,6 +182,7 @@ func handleUDPConn(packet *inbound.PacketAdapter) {
 	metadata := packet.Metadata()
 	if !metadata.Valid() {
 		log.Warnln("[Metadata] not valid: %#v", metadata)
+		SharedToken.ReleaseToken(packet.GetTokenID())
 		return
 	}
 
@@ -193,6 +194,7 @@ func handleUDPConn(packet *inbound.PacketAdapter) {
 
 	if err := preHandleMetadata(metadata); err != nil {
 		log.Debugln("[Metadata PreHandle] error: %s", err)
+		SharedToken.ReleaseToken(packet.GetTokenID())
 		return
 	}
 
@@ -200,6 +202,7 @@ func handleUDPConn(packet *inbound.PacketAdapter) {
 	pc := natTable.Get(key)
 	if pc != nil {
 		handleUDPToRemote(packet, pc, metadata)
+		SharedToken.ReleaseToken(packet.GetTokenID())
 		return
 	}
 
@@ -240,7 +243,7 @@ func handleUDPConn(packet *inbound.PacketAdapter) {
 			natTable.Set(key, pc)
 			natTable.Delete(lockKey)
 			wg.Done()
-			go handleUDPToLocal(packet.UDPPacket, pc, key, fAddr)
+			go handleUDPToLocal(packet.UDPPacket, pc, key, fAddr, packet.GetTokenID())
 		}
 
 		wg.Wait()
@@ -248,11 +251,13 @@ func handleUDPConn(packet *inbound.PacketAdapter) {
 		if pc != nil {
 			handleUDPToRemote(packet, pc, metadata)
 		}
+		SharedToken.ReleaseToken(packet.GetTokenID())
 	}()
 }
 
 func handleTCPConn(localConn C.ServerAdapter) {
 	defer localConn.Close()
+	defer SharedToken.ReleaseToken(localConn.GetTokenID())
 
 	metadata := localConn.Metadata()
 	if !metadata.Valid() {
@@ -276,7 +281,7 @@ func handleTCPConn(localConn C.ServerAdapter) {
 		log.Warnln("dial %s error: %s", proxy.Name(), err.Error())
 		return
 	}
-	remoteConn = newTCPTracker(remoteConn, DefaultManager, metadata, rule)
+	remoteConn = newTCPTracker(remoteConn, DefaultManager, metadata, rule, localConn.GetTokenID())
 	defer remoteConn.Close()
 
 	switch true {

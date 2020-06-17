@@ -1,11 +1,43 @@
 package tunnel
 
 import (
+	"github.com/gofrs/uuid"
 	"sync"
 	"time"
 )
 
 var DefaultManager *Manager
+//var num int64 = 0
+var lock sync.Mutex
+var SharedToken = Token{
+	token: make(chan struct{}, 100),
+	use:  make(map[uuid.UUID] struct{}),
+}
+type Token struct {
+	token chan struct{}
+	use map[uuid.UUID] struct{}
+}
+func (t *Token) MakeToken() uuid.UUID {
+	<- t.token
+	id, _ := uuid.NewV4()
+	lock.Lock()
+	defer lock.Unlock()
+	t.use[id] = struct{}{}
+	return id
+}
+func (t *Token) PushToken() {
+	t.token <- struct{}{}
+}
+func (t *Token) ReleaseToken(id uuid.UUID) {
+	lock.Lock()
+	if _, ok := t.use[id]; ok {
+		delete(t.use, id)
+		lock.Unlock()
+		t.token <- struct{}{}
+	} else {
+		lock.Unlock()
+	}
+}
 
 func init() {
 	DefaultManager = &Manager{
@@ -13,6 +45,7 @@ func init() {
 		download: make(chan int64),
 	}
 	DefaultManager.handle()
+	go DefaultManager.Trim()
 }
 
 type Manager struct {
@@ -45,6 +78,28 @@ func (m *Manager) Download() chan<- int64 {
 
 func (m *Manager) Now() (up int64, down int64) {
 	return m.uploadBlip, m.downloadBlip
+}
+
+func (m *Manager) Trim() {
+	for true {
+		var size = 0
+		var dieTime = time.Now().Add(time.Hour)
+		var dieTracker tracker = nil
+		//var fi = make(chan interface{})
+		m.connections.Range(func(key, value interface{}) bool {
+			size++
+			tracker := value.(tracker)
+			time := tracker.GetKeepAlive()
+			if time.Before(dieTime) {
+				dieTracker = tracker
+				dieTime = time
+			}
+			return true
+		})
+		if size > 8 {
+			dieTracker.Close()
+		}
+	}
 }
 
 func (m *Manager) Snapshot() *Snapshot {

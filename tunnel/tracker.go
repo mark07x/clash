@@ -9,8 +9,11 @@ import (
 )
 
 type tracker interface {
+	GetTokenID() uuid.UUID
 	ID() string
 	Close() error
+	GetKeepAlive() time.Time
+	GetStartTime() time.Time
 }
 
 type trackerInfo struct {
@@ -19,18 +22,32 @@ type trackerInfo struct {
 	UploadTotal   int64       `json:"upload"`
 	DownloadTotal int64       `json:"download"`
 	Start         time.Time   `json:"start"`
+	KeepAlive	  time.Time
 	Chain         C.Chain     `json:"chains"`
 	Rule          string      `json:"rule"`
 }
 
 type tcpTracker struct {
 	C.Conn `json:"-"`
+	TokenID uuid.UUID
 	*trackerInfo
 	manager *Manager
 }
 
+func (tt *tcpTracker) GetTokenID() uuid.UUID {
+	return tt.TokenID
+}
+
 func (tt *tcpTracker) ID() string {
 	return tt.UUID.String()
+}
+
+func (tt *tcpTracker) GetKeepAlive() time.Time {
+	return tt.KeepAlive
+}
+
+func (tt *tcpTracker) GetStartTime() time.Time {
+	return tt.Start
 }
 
 func (tt *tcpTracker) Read(b []byte) (int, error) {
@@ -38,6 +55,7 @@ func (tt *tcpTracker) Read(b []byte) (int, error) {
 	download := int64(n)
 	tt.manager.Download() <- download
 	tt.DownloadTotal += download
+	tt.KeepAlive = time.Now()
 	return n, err
 }
 
@@ -46,15 +64,17 @@ func (tt *tcpTracker) Write(b []byte) (int, error) {
 	upload := int64(n)
 	tt.manager.Upload() <- upload
 	tt.UploadTotal += upload
+	tt.KeepAlive = time.Now()
 	return n, err
 }
 
 func (tt *tcpTracker) Close() error {
 	tt.manager.Leave(tt)
+	SharedToken.ReleaseToken(tt.TokenID)
 	return tt.Conn.Close()
 }
 
-func newTCPTracker(conn C.Conn, manager *Manager, metadata *C.Metadata, rule C.Rule) *tcpTracker {
+func newTCPTracker(conn C.Conn, manager *Manager, metadata *C.Metadata, rule C.Rule, id uuid.UUID) *tcpTracker {
 	uuid, _ := uuid.NewV4()
 	ruleType := ""
 	if rule != nil {
@@ -64,9 +84,11 @@ func newTCPTracker(conn C.Conn, manager *Manager, metadata *C.Metadata, rule C.R
 	t := &tcpTracker{
 		Conn:    conn,
 		manager: manager,
+		TokenID: id,
 		trackerInfo: &trackerInfo{
 			UUID:     uuid,
 			Start:    time.Now(),
+			KeepAlive:    time.Now(),
 			Metadata: metadata,
 			Chain:    conn.Chains(),
 			Rule:     ruleType,
@@ -79,12 +101,25 @@ func newTCPTracker(conn C.Conn, manager *Manager, metadata *C.Metadata, rule C.R
 
 type udpTracker struct {
 	C.PacketConn `json:"-"`
+	TokenID uuid.UUID
 	*trackerInfo
 	manager *Manager
 }
 
+func (ut *udpTracker) GetTokenID() uuid.UUID {
+	return ut.TokenID
+}
+
 func (ut *udpTracker) ID() string {
 	return ut.UUID.String()
+}
+
+func (ut *udpTracker) GetKeepAlive() time.Time {
+	return ut.KeepAlive
+}
+
+func (ut *udpTracker) GetStartTime() time.Time {
+	return ut.Start
 }
 
 func (ut *udpTracker) ReadFrom(b []byte) (int, net.Addr, error) {
@@ -92,6 +127,7 @@ func (ut *udpTracker) ReadFrom(b []byte) (int, net.Addr, error) {
 	download := int64(n)
 	ut.manager.Download() <- download
 	ut.DownloadTotal += download
+	ut.KeepAlive = time.Now()
 	return n, addr, err
 }
 
@@ -100,6 +136,7 @@ func (ut *udpTracker) WriteTo(b []byte, addr net.Addr) (int, error) {
 	upload := int64(n)
 	ut.manager.Upload() <- upload
 	ut.UploadTotal += upload
+	ut.KeepAlive = time.Now()
 	return n, err
 }
 
@@ -108,11 +145,13 @@ func (ut *udpTracker) WriteWithMetadata(p []byte, metadata *C.Metadata) (int, er
 	upload := int64(n)
 	ut.manager.Upload() <- upload
 	ut.UploadTotal += upload
+	ut.KeepAlive = time.Now()
 	return n, err
 }
 
 func (ut *udpTracker) Close() error {
 	ut.manager.Leave(ut)
+	SharedToken.ReleaseToken(ut.TokenID)
 	return ut.PacketConn.Close()
 }
 
@@ -129,6 +168,7 @@ func newUDPTracker(conn C.PacketConn, manager *Manager, metadata *C.Metadata, ru
 		trackerInfo: &trackerInfo{
 			UUID:     uuid,
 			Start:    time.Now(),
+			KeepAlive:    time.Now(),
 			Metadata: metadata,
 			Chain:    conn.Chains(),
 			Rule:     ruleType,

@@ -1,6 +1,7 @@
 package socks
 
 import (
+	"github.com/gofrs/uuid"
 	"github.com/mark07x/clash/bridge"
 	"io"
 	"io/ioutil"
@@ -38,7 +39,8 @@ func NewSocksProxy(addr string) (*SockListener, error) {
 				}
 				continue
 			}
-			go handleSocks(c)
+			id := tunnel.SharedToken.MakeToken()
+			go handleSocks(c, id)
 		}
 	}()
 
@@ -54,17 +56,19 @@ func (l *SockListener) Address() string {
 	return l.address
 }
 
-func handleSocks(conn net.Conn) {
+func handleSocks(conn net.Conn, id uuid.UUID) {
 	target, command, err := socks5.ServerHandshake(conn, authStore.Authenticator())
 	if err != nil {
 		conn.Close()
+		tunnel.SharedToken.ReleaseToken(id)
 		return
 	}
 	conn.(*net.TCPConn).SetKeepAlive(true)
 	if command == socks5.CmdUDPAssociate {
 		defer conn.Close()
+		defer tunnel.SharedToken.ReleaseToken(id)
 		io.Copy(ioutil.Discard, conn)
 		return
 	}
-	tunnel.Add(adapters.NewSocket(target, conn, C.SOCKS))
+	tunnel.Add(adapters.NewSocket(target, conn, C.SOCKS, id))
 }

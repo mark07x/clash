@@ -2,6 +2,7 @@ package tunnel
 
 import (
 	"bufio"
+	"github.com/gofrs/uuid"
 	"io"
 	"net"
 	"net/http"
@@ -89,11 +90,12 @@ func handleUDPToRemote(packet C.UDPPacket, pc C.PacketConn, metadata *C.Metadata
 	}
 }
 
-func handleUDPToLocal(packet C.UDPPacket, pc net.PacketConn, key string, fAddr net.Addr) {
+func handleUDPToLocal(packet C.UDPPacket, pc net.PacketConn, key string, fAddr net.Addr, id uuid.UUID) {
 	buf := pool.Get(pool.RelayBufferSize)
 	defer pool.Put(buf)
 	defer natTable.Delete(key)
 	defer pc.Close()
+	defer SharedToken.ReleaseToken(id)
 
 	for {
 		pc.SetReadDeadline(time.Now().Add(udpTimeout))
