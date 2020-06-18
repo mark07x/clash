@@ -56,15 +56,9 @@ func T2SSubProgramStartSocks(packetFlow T2SSubProgramPacketFlow, proxyHost strin
 
 func Main(homeDir string, configFile string, externalUI string, externalController string, secret string, version bool, testConfig bool) {
 	debug.SetGCPercent(10)
-	ticker := time.NewTicker(time.Second * 45)
 	for i := 0; i < 9; i++ {
 		tunnel.SharedToken.PushToken()
 	}
-	go func() {
-		for range ticker.C {
-			debug.FreeOSMemory()
-		}
-	}()
 	bridge.Func.Print("iClash core is started")
 	if version {
 		bridge.Printf("Clash %s %s %s %s\n", C.Version, runtime.GOOS, runtime.GOARCH, C.BuildTime)
