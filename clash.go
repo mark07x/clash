@@ -57,7 +57,7 @@ func T2SSubProgramStartSocks(packetFlow T2SSubProgramPacketFlow, proxyHost strin
 func Main(homeDir string, configFile string, externalUI string, externalController string, secret string, version bool, testConfig bool) {
 	debug.SetGCPercent(10)
 	ticker := time.NewTicker(time.Second * 45)
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 9; i++ {
 		tunnel.SharedToken.PushToken()
 	}
 	go func() {

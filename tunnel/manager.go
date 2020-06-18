@@ -7,22 +7,18 @@ import (
 )
 
 var DefaultManager *Manager
-//var num int64 = 0
 var lock sync.Mutex
 var SharedToken = Token{
 	token: make(chan struct{}, 100),
-	use:  make(map[uuid.UUID] struct{}),
 }
 type Token struct {
 	token chan struct{}
-	use map[uuid.UUID] struct{}
+	use sync.Map
 }
 func (t *Token) MakeToken() uuid.UUID {
 	<- t.token
 	id, _ := uuid.NewV4()
-	lock.Lock()
-	defer lock.Unlock()
-	t.use[id] = struct{}{}
+	t.use.Store(id, struct{}{})
 	return id
 }
 func (t *Token) PushToken() {
@@ -30,8 +26,8 @@ func (t *Token) PushToken() {
 }
 func (t *Token) ReleaseToken(id uuid.UUID) {
 	lock.Lock()
-	if _, ok := t.use[id]; ok {
-		delete(t.use, id)
+	if _, ok := t.use.Load(id); ok {
+		t.use.Delete(id)
 		lock.Unlock()
 		t.token <- struct{}{}
 	} else {
@@ -61,11 +57,11 @@ type Manager struct {
 }
 
 func (m *Manager) Join(c tracker) {
-	m.connections.Store(c.ID(), c)
+	m.connections.Store(c.GetTokenID(), c)
 }
 
 func (m *Manager) Leave(c tracker) {
-	m.connections.Delete(c.ID())
+	m.connections.Delete(c.GetTokenID())
 }
 
 func (m *Manager) Upload() chan<- int64 {
@@ -96,7 +92,7 @@ func (m *Manager) Trim() {
 			}
 			return true
 		})
-		if size > 8 {
+		if size > 7 {
 			dieTracker.Close()
 		}
 	}

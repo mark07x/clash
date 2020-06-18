@@ -62,7 +62,7 @@ func (bf *BF) On(name string) {
 
 func main() {
 	bridge.Func = new(BF)
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 9; i++ {
 		tunnel.SharedToken.PushToken()
 	}
 	if version {

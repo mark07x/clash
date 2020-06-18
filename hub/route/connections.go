@@ -74,7 +74,7 @@ func closeConnection(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	snapshot := T.DefaultManager.Snapshot()
 	for _, c := range snapshot.Connections {
-		if id == c.ID() {
+		if id == c.GetTokenID().String() {
 			c.Close()
 			break
 		}

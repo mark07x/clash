@@ -10,7 +10,6 @@ import (
 
 type tracker interface {
 	GetTokenID() uuid.UUID
-	ID() string
 	Close() error
 	GetKeepAlive() time.Time
 	GetStartTime() time.Time
@@ -29,17 +28,12 @@ type trackerInfo struct {
 
 type tcpTracker struct {
 	C.Conn `json:"-"`
-	TokenID uuid.UUID
 	*trackerInfo
 	manager *Manager
 }
 
 func (tt *tcpTracker) GetTokenID() uuid.UUID {
-	return tt.TokenID
-}
-
-func (tt *tcpTracker) ID() string {
-	return tt.UUID.String()
+	return tt.UUID
 }
 
 func (tt *tcpTracker) GetKeepAlive() time.Time {
@@ -70,12 +64,11 @@ func (tt *tcpTracker) Write(b []byte) (int, error) {
 
 func (tt *tcpTracker) Close() error {
 	tt.manager.Leave(tt)
-	SharedToken.ReleaseToken(tt.TokenID)
+	SharedToken.ReleaseToken(tt.UUID)
 	return tt.Conn.Close()
 }
 
 func newTCPTracker(conn C.Conn, manager *Manager, metadata *C.Metadata, rule C.Rule, id uuid.UUID) *tcpTracker {
-	uuid, _ := uuid.NewV4()
 	ruleType := ""
 	if rule != nil {
 		ruleType = rule.RuleType().String()
@@ -84,14 +77,13 @@ func newTCPTracker(conn C.Conn, manager *Manager, metadata *C.Metadata, rule C.R
 	t := &tcpTracker{
 		Conn:    conn,
 		manager: manager,
-		TokenID: id,
 		trackerInfo: &trackerInfo{
-			UUID:     uuid,
 			Start:    time.Now(),
 			KeepAlive:    time.Now(),
 			Metadata: metadata,
 			Chain:    conn.Chains(),
 			Rule:     ruleType,
+			UUID:     id,
 		},
 	}
 
@@ -101,17 +93,12 @@ func newTCPTracker(conn C.Conn, manager *Manager, metadata *C.Metadata, rule C.R
 
 type udpTracker struct {
 	C.PacketConn `json:"-"`
-	TokenID uuid.UUID
 	*trackerInfo
 	manager *Manager
 }
 
 func (ut *udpTracker) GetTokenID() uuid.UUID {
-	return ut.TokenID
-}
-
-func (ut *udpTracker) ID() string {
-	return ut.UUID.String()
+	return ut.UUID
 }
 
 func (ut *udpTracker) GetKeepAlive() time.Time {
@@ -151,12 +138,11 @@ func (ut *udpTracker) WriteWithMetadata(p []byte, metadata *C.Metadata) (int, er
 
 func (ut *udpTracker) Close() error {
 	ut.manager.Leave(ut)
-	SharedToken.ReleaseToken(ut.TokenID)
+	SharedToken.ReleaseToken(ut.UUID)
 	return ut.PacketConn.Close()
 }
 
 func newUDPTracker(conn C.PacketConn, manager *Manager, metadata *C.Metadata, rule C.Rule) *udpTracker {
-	uuid, _ := uuid.NewV4()
 	ruleType := ""
 	if rule != nil {
 		ruleType = rule.RuleType().String()
@@ -166,7 +152,6 @@ func newUDPTracker(conn C.PacketConn, manager *Manager, metadata *C.Metadata, ru
 		PacketConn: conn,
 		manager:    manager,
 		trackerInfo: &trackerInfo{
-			UUID:     uuid,
 			Start:    time.Now(),
 			KeepAlive:    time.Now(),
 			Metadata: metadata,
