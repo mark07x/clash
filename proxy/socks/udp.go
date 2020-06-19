@@ -41,7 +41,8 @@ func NewSocksUDPProxy(addr string) (*SockUDPListener, error) {
 				}
 				continue
 			}
-			id := tunnel.SharedToken.MakeToken()
+			//id := tunnel.SharedToken.MakeToken()
+			id, _ := uuid.NewV4()
 			handleSocksUDP(l, buf[:n], remoteAddr, id)
 		}
 	}()
@@ -63,7 +64,7 @@ func handleSocksUDP(pc net.PacketConn, buf []byte, addr net.Addr, id uuid.UUID) 
 	if err != nil {
 		// Unresolved UDP packet, return buffer to the pool
 		pool.Put(buf)
-		tunnel.SharedToken.ReleaseToken(id)
+		//tunnel.SharedToken.ReleaseToken(id)
 		return
 	}
 	packet := &packet{

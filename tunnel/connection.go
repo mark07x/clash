@@ -95,7 +95,7 @@ func handleUDPToLocal(packet C.UDPPacket, pc net.PacketConn, key string, fAddr n
 	defer pool.Put(buf)
 	defer natTable.Delete(key)
 	defer pc.Close()
-	defer SharedToken.ReleaseToken(id)
+	//defer SharedToken.ReleaseToken(id)
 
 	for {
 		pc.SetReadDeadline(time.Now().Add(udpTimeout))

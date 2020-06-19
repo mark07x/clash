@@ -49,7 +49,8 @@ func NewRedirUDPProxy(addr string) (*RedirUDPListener, error) {
 			if err != nil {
 				continue
 			}
-			id := tunnel.SharedToken.MakeToken()
+			//id := tunnel.SharedToken.MakeToken()
+			id, _ := uuid.NewV4()
 			handleRedirUDP(l, buf[:n], lAddr, rAddr, id)
 		}
 	}()

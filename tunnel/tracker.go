@@ -138,7 +138,7 @@ func (ut *udpTracker) WriteWithMetadata(p []byte, metadata *C.Metadata) (int, er
 
 func (ut *udpTracker) Close() error {
 	ut.manager.Leave(ut)
-	SharedToken.ReleaseToken(ut.UUID)
+	//SharedToken.ReleaseToken(ut.UUID)
 	return ut.PacketConn.Close()
 }
 

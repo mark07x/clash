@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/mark07x/clash/bridge"
-	"github.com/mark07x/clash/tunnel"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -62,9 +61,6 @@ func (bf *BF) On(name string) {
 
 func main() {
 	bridge.Func = new(BF)
-	for i := 0; i < 9; i++ {
-		tunnel.SharedToken.PushToken()
-	}
 	if version {
 		fmt.Printf("Clash %s %s %s %s\n", C.Version, runtime.GOOS, runtime.GOARCH, C.BuildTime)
 		return

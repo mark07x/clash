@@ -182,7 +182,7 @@ func handleUDPConn(packet *inbound.PacketAdapter) {
 	metadata := packet.Metadata()
 	if !metadata.Valid() {
 		log.Warnln("[Metadata] not valid: %#v", metadata)
-		SharedToken.ReleaseToken(packet.GetTokenID())
+		//SharedToken.ReleaseToken(packet.GetTokenID())
 		return
 	}
 
@@ -194,7 +194,7 @@ func handleUDPConn(packet *inbound.PacketAdapter) {
 
 	if err := preHandleMetadata(metadata); err != nil {
 		log.Debugln("[Metadata PreHandle] error: %s", err)
-		SharedToken.ReleaseToken(packet.GetTokenID())
+		//SharedToken.ReleaseToken(packet.GetTokenID())
 		return
 	}
 
@@ -202,7 +202,7 @@ func handleUDPConn(packet *inbound.PacketAdapter) {
 	pc := natTable.Get(key)
 	if pc != nil {
 		handleUDPToRemote(packet, pc, metadata)
-		SharedToken.ReleaseToken(packet.GetTokenID())
+		//SharedToken.ReleaseToken(packet.GetTokenID())
 		return
 	}
 
@@ -251,7 +251,7 @@ func handleUDPConn(packet *inbound.PacketAdapter) {
 		if pc != nil {
 			handleUDPToRemote(packet, pc, metadata)
 		}
-		SharedToken.ReleaseToken(packet.GetTokenID())
+		//SharedToken.ReleaseToken(packet.GetTokenID())
 	}()
 }
 

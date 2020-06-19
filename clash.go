@@ -10,7 +10,6 @@ import (
 	"github.com/mark07x/clash/hub"
 	"github.com/mark07x/clash/hub/executor"
 	"github.com/mark07x/clash/log"
-	"github.com/mark07x/clash/tunnel"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -56,9 +55,6 @@ func T2SSubProgramStartSocks(packetFlow T2SSubProgramPacketFlow, proxyHost strin
 
 func Main(homeDir string, configFile string, externalUI string, externalController string, secret string, version bool, testConfig bool) {
 	debug.SetGCPercent(10)
-	for i := 0; i < 9; i++ {
-		tunnel.SharedToken.PushToken()
-	}
 	bridge.Func.Print("iClash core is started")
 	if version {
 		bridge.Printf("Clash %s %s %s %s\n", C.Version, runtime.GOOS, runtime.GOARCH, C.BuildTime)

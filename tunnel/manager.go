@@ -11,6 +11,8 @@ var lock sync.Mutex
 var SharedToken = Token{
 	token: make(chan struct{}, 100),
 }
+const ConnectionNumber = 9
+const Difference = 1
 type Token struct {
 	token chan struct{}
 	use sync.Map
@@ -41,7 +43,9 @@ func init() {
 		download: make(chan int64),
 	}
 	DefaultManager.handle()
-	go DefaultManager.Trim()
+	for i := 0; i < ConnectionNumber; i++ {
+		SharedToken.PushToken()
+	}
 }
 
 type Manager struct {
@@ -58,6 +62,7 @@ type Manager struct {
 
 func (m *Manager) Join(c tracker) {
 	m.connections.Store(c.GetTokenID(), c)
+	go DefaultManager.Trim()
 }
 
 func (m *Manager) Leave(c tracker) {
@@ -77,24 +82,22 @@ func (m *Manager) Now() (up int64, down int64) {
 }
 
 func (m *Manager) Trim() {
-	for true {
-		var size = 0
-		var dieTime = time.Now().Add(time.Hour)
-		var dieTracker tracker = nil
-		//var fi = make(chan interface{})
-		m.connections.Range(func(key, value interface{}) bool {
+	var size = 0
+	var dieTime = time.Now().Add(time.Hour)
+	var dieTracker tracker = nil
+	m.connections.Range(func(key, value interface{}) bool {
+		if tcpTracker, ok := value.(*tcpTracker); ok {
 			size++
-			tracker := value.(tracker)
-			time := tracker.GetKeepAlive()
+			time := tcpTracker.GetKeepAlive()
 			if time.Before(dieTime) {
-				dieTracker = tracker
+				dieTracker = tcpTracker
 				dieTime = time
 			}
-			return true
-		})
-		if size > 7 {
-			dieTracker.Close()
 		}
+		return true
+	})
+	if size > ConnectionNumber - Difference {
+		dieTracker.Close()
 	}
 }
 
