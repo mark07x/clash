@@ -206,7 +206,7 @@ func handleUDPConn(packet *inbound.PacketAdapter) {
 		return
 	}
 
-	lockKey := key + "-lock"
+	lockKey := key + "-releaseLock"
 	wg, loaded := natTable.GetOrCreateLock(lockKey)
 
 	go func() {

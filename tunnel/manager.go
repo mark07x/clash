@@ -7,18 +7,22 @@ import (
 )
 
 var DefaultManager *Manager
-var lock sync.Mutex
+var releaseLock sync.Mutex
+var dieLock sync.Mutex
 var SharedToken = Token{
 	token: make(chan struct{}, 100),
 }
+
 const ConnectionNumber = 9
 const Difference = 1
+
 type Token struct {
 	token chan struct{}
-	use sync.Map
+	use   sync.Map
 }
+
 func (t *Token) MakeToken() uuid.UUID {
-	<- t.token
+	<-t.token
 	id, _ := uuid.NewV4()
 	t.use.Store(id, struct{}{})
 	return id
@@ -27,13 +31,13 @@ func (t *Token) PushToken() {
 	t.token <- struct{}{}
 }
 func (t *Token) ReleaseToken(id uuid.UUID) {
-	lock.Lock()
+	releaseLock.Lock()
 	if _, ok := t.use.Load(id); ok {
 		t.use.Delete(id)
-		lock.Unlock()
+		releaseLock.Unlock()
 		t.token <- struct{}{}
 	} else {
-		lock.Unlock()
+		releaseLock.Unlock()
 	}
 }
 
@@ -62,7 +66,7 @@ type Manager struct {
 
 func (m *Manager) Join(c tracker) {
 	m.connections.Store(c.GetTokenID(), c)
-	go DefaultManager.Trim()
+	go m.Trim()
 }
 
 func (m *Manager) Leave(c tracker) {
@@ -85,6 +89,7 @@ func (m *Manager) Trim() {
 	var size = 0
 	var dieTime = time.Now().Add(time.Hour)
 	var dieTracker tracker = nil
+	dieLock.Lock()
 	m.connections.Range(func(key, value interface{}) bool {
 		if tcpTracker, ok := value.(*tcpTracker); ok {
 			size++
@@ -96,9 +101,10 @@ func (m *Manager) Trim() {
 		}
 		return true
 	})
-	if size > ConnectionNumber - Difference {
+	if size > ConnectionNumber-Difference {
 		dieTracker.Close()
 	}
+	dieLock.Unlock()
 }
 
 func (m *Manager) Snapshot() *Snapshot {
