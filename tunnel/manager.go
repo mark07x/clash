@@ -101,7 +101,7 @@ func (m *Manager) Trim() {
 		}
 		return true
 	})
-	if size > ConnectionNumber-Difference {
+	if size > ConnectionNumber - Difference {
 		dieTracker.Close()
 	}
 	dieLock.Unlock()
