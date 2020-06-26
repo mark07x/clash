@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"runtime/debug"
+	"sync"
 	"syscall"
 	"time"
 )
@@ -25,6 +26,37 @@ type BridgeFunctions interface {
 	Log(str string, level string)
 	On(name string)
 }
+
+var freeMemoryTicker *time.Ticker
+var tickerLock sync.Mutex
+
+func Up() {
+	tickerLock.Lock()
+	if freeMemoryTicker != nil {
+		freeMemoryTicker.Stop()
+	}
+	freeMemoryTicker = time.NewTicker(30 * time.Second)
+	tickerLock.Unlock()
+}
+
+func Down() {
+	tickerLock.Lock()
+	if freeMemoryTicker != nil {
+		freeMemoryTicker.Stop()
+	}
+	freeMemoryTicker = time.NewTicker(10 * time.Second)
+	tickerLock.Unlock()
+}
+
+func freeMemory() {
+	for true {
+		tickerLock.Lock()
+		<- freeMemoryTicker.C
+		debug.FreeOSMemory()
+		tickerLock.Unlock()
+	}
+}
+
 func InitBridge(fun BridgeFunctions) {
 	bridge.Func = fun
 }
@@ -55,12 +87,6 @@ func T2SSubProgramStartSocks(packetFlow T2SSubProgramPacketFlow, proxyHost strin
 
 func Main(homeDir string, configFile string, externalUI string, externalController string, secret string, version bool, testConfig bool) {
 	debug.SetGCPercent(10)
-	go func() {
-		ticker := time.NewTicker(time.Second * 20)
-		for range ticker.C {
-			debug.FreeOSMemory()
-		}
-	}()
 	bridge.Func.Print("iClash core is started")
 	if version {
 		bridge.Printf("Clash %s %s %s %s\n", C.Version, runtime.GOOS, runtime.GOARCH, C.BuildTime)
