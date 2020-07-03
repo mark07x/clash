@@ -40,7 +40,7 @@ func NewSocksProxy(addr string) (*SockListener, error) {
 				continue
 			}
 			id := tunnel.SharedToken.MakeToken()
-			go HandleSocks(c, id)
+			go handleSocks(c, id)
 		}
 	}()
 
@@ -56,16 +56,14 @@ func (l *SockListener) Address() string {
 	return l.address
 }
 
-func HandleSocks(conn net.Conn, id uuid.UUID) {
+func handleSocks(conn net.Conn, id uuid.UUID) {
 	target, command, err := socks5.ServerHandshake(conn, authStore.Authenticator())
 	if err != nil {
 		conn.Close()
 		tunnel.SharedToken.ReleaseToken(id)
 		return
 	}
-	if c, ok := conn.(*net.TCPConn); ok {
-		c.SetKeepAlive(true)
-	}
+	conn.(*net.TCPConn).SetKeepAlive(true)
 	if command == socks5.CmdUDPAssociate {
 		defer conn.Close()
 		defer tunnel.SharedToken.ReleaseToken(id)

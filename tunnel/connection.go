@@ -3,7 +3,6 @@ package tunnel
 import (
 	"bufio"
 	"github.com/gofrs/uuid"
-	"errors"
 	"io"
 	"net"
 	"net/http"
@@ -11,7 +10,6 @@ import (
 	"time"
 
 	adapters "github.com/mark07x/clash/adapters/inbound"
-	"github.com/mark07x/clash/component/resolver"
 	C "github.com/mark07x/clash/constant"
 
 	"github.com/mark07x/clash/common/pool"
@@ -84,25 +82,12 @@ func handleHTTP(request *adapters.HTTPAdapter, outbound net.Conn) {
 	}
 }
 
-func handleUDPToRemote(packet C.UDPPacket, pc C.PacketConn, metadata *C.Metadata) error {
+func handleUDPToRemote(packet C.UDPPacket, pc C.PacketConn, metadata *C.Metadata) {
 	defer packet.Drop()
 
-	// local resolve UDP dns
-	if !metadata.Resolved() {
-		ip, err := resolver.ResolveIP(metadata.Host)
-		if err != nil {
-			return err
-		}
-		metadata.DstIP = ip
+	if _, err := pc.WriteWithMetadata(packet.Data(), metadata); err != nil {
+		return
 	}
-
-	addr := metadata.UDPAddr()
-	if addr == nil {
-		return errors.New("udp addr invalid")
-	}
-
-	_, err := pc.WriteTo(packet.Data(), addr)
-	return err
 }
 
 func handleUDPToLocal(packet C.UDPPacket, pc net.PacketConn, key string, fAddr net.Addr, id uuid.UUID) {

@@ -101,8 +101,7 @@ func ParseProxyGroup(config map[string]interface{}, proxyMap map[string]C.Proxy,
 	var group C.ProxyAdapter
 	switch groupOption.Type {
 	case "url-test":
-		opts := parseURLTestOption(config)
-		group = NewURLTest(groupName, providers, opts...)
+		group = NewURLTest(groupName, providers)
 	case "select":
 		group = NewSelector(groupName, providers)
 	case "fallback":

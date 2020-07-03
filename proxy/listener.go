@@ -4,12 +4,10 @@ import (
 	"fmt"
 	"net"
 	"strconv"
-	"sync"
 
 	"github.com/mark07x/clash/log"
 	"github.com/mark07x/clash/proxy/http"
-    "github.com/mark07x/clash/proxy/mixed"
-    "github.com/mark07x/clash/proxy/redir"
+	"github.com/mark07x/clash/proxy/redir"
 	"github.com/mark07x/clash/proxy/socks"
 )
 
@@ -22,15 +20,6 @@ var (
 	httpListener     *http.HttpListener
 	redirListener    *redir.RedirListener
 	redirUDPListener *redir.RedirUDPListener
-	mixedListener    *mixed.MixedListener
-	mixedUDPLister   *socks.SockUDPListener
-
-	// lock for recreate function
-	socksMux sync.Mutex
-	httpMux  sync.Mutex
-	redirMux sync.Mutex
-	mixedMux sync.Mutex
-	tunMux   sync.Mutex
 )
 
 type listener interface {
@@ -42,7 +31,6 @@ type Ports struct {
 	Port      int `json:"port"`
 	SocksPort int `json:"socks-port"`
 	RedirPort int `json:"redir-port"`
-	MixedPort int `json:"mixed-port"`
 }
 
 func AllowLan() bool {
@@ -62,9 +50,6 @@ func SetBindAddress(host string) {
 }
 
 func ReCreateHTTP(port int) error {
-	httpMux.Lock()
-	defer httpMux.Unlock()
-
 	addr := genAddr(bindAddress, port, allowLan)
 
 	if httpListener != nil {
@@ -89,9 +74,6 @@ func ReCreateHTTP(port int) error {
 }
 
 func ReCreateSocks(port int) error {
-	socksMux.Lock()
-	defer socksMux.Unlock()
-
 	addr := genAddr(bindAddress, port, allowLan)
 
 	shouldTCPIgnore := false
@@ -141,9 +123,6 @@ func ReCreateSocks(port int) error {
 }
 
 func ReCreateRedir(port int) error {
-	redirMux.Lock()
-	defer redirMux.Unlock()
-
 	addr := genAddr(bindAddress, port, allowLan)
 
 	if redirListener != nil {
@@ -180,55 +159,6 @@ func ReCreateRedir(port int) error {
 	return nil
 }
 
-func ReCreateMixed(port int) error {
-	mixedMux.Lock()
-	defer mixedMux.Unlock()
-
-	addr := genAddr(bindAddress, port, allowLan)
-
-	shouldTCPIgnore := false
-	shouldUDPIgnore := false
-
-	if mixedListener != nil {
-		if mixedListener.Address() != addr {
-			mixedListener.Close()
-			mixedListener = nil
-		} else {
-			shouldTCPIgnore = true
-		}
-	}
-	if mixedUDPLister != nil {
-		if mixedUDPLister.Address() != addr {
-			mixedUDPLister.Close()
-			mixedUDPLister = nil
-		} else {
-			shouldUDPIgnore = true
-		}
-	}
-
-	if shouldTCPIgnore && shouldUDPIgnore {
-		return nil
-	}
-
-	if portIsZero(addr) {
-		return nil
-	}
-
-	var err error
-	mixedListener, err = mixed.NewMixedProxy(addr)
-	if err != nil {
-		return err
-	}
-
-	mixedUDPLister, err = socks.NewSocksUDPProxy(addr)
-	if err != nil {
-		mixedListener.Close()
-		return err
-	}
-
-	return nil
-}
-
 // GetPorts return the ports of proxy servers
 func GetPorts() *Ports {
 	ports := &Ports{}
@@ -249,12 +179,6 @@ func GetPorts() *Ports {
 		_, portStr, _ := net.SplitHostPort(redirListener.Address())
 		port, _ := strconv.Atoi(portStr)
 		ports.RedirPort = port
-	}
-
-	if mixedListener != nil {
-		_, portStr, _ := net.SplitHostPort(mixedListener.Address())
-		port, _ := strconv.Atoi(portStr)
-		ports.MixedPort = port
 	}
 
 	return ports

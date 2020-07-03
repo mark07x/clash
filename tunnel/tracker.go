@@ -24,7 +24,6 @@ type trackerInfo struct {
 	KeepAlive	  time.Time
 	Chain         C.Chain     `json:"chains"`
 	Rule          string      `json:"rule"`
-	RulePayload   string      `json:"rulePayload"`
 }
 
 type tcpTracker struct {
@@ -70,6 +69,10 @@ func (tt *tcpTracker) Close() error {
 }
 
 func newTCPTracker(conn C.Conn, manager *Manager, metadata *C.Metadata, rule C.Rule, id uuid.UUID) *tcpTracker {
+	ruleType := ""
+	if rule != nil {
+		ruleType = rule.RuleType().String()
+	}
 
 	t := &tcpTracker{
 		Conn:    conn,
@@ -79,14 +82,9 @@ func newTCPTracker(conn C.Conn, manager *Manager, metadata *C.Metadata, rule C.R
 			KeepAlive:    time.Now(),
 			Metadata: metadata,
 			Chain:    conn.Chains(),
+			Rule:     ruleType,
 			UUID:     id,
-			Rule:     "",
 		},
-	}
-
-	if rule != nil {
-		t.trackerInfo.Rule = rule.RuleType().String()
-		t.trackerInfo.RulePayload = rule.Payload()
 	}
 
 	manager.Join(t)
@@ -129,6 +127,14 @@ func (ut *udpTracker) WriteTo(b []byte, addr net.Addr) (int, error) {
 	return n, err
 }
 
+func (ut *udpTracker) WriteWithMetadata(p []byte, metadata *C.Metadata) (int, error) {
+	n, err := ut.PacketConn.WriteWithMetadata(p, metadata)
+	upload := int64(n)
+	ut.manager.Upload() <- upload
+	ut.UploadTotal += upload
+	ut.KeepAlive = time.Now()
+	return n, err
+}
 
 func (ut *udpTracker) Close() error {
 	ut.manager.Leave(ut)
@@ -137,6 +143,10 @@ func (ut *udpTracker) Close() error {
 }
 
 func newUDPTracker(conn C.PacketConn, manager *Manager, metadata *C.Metadata, rule C.Rule) *udpTracker {
+	ruleType := ""
+	if rule != nil {
+		ruleType = rule.RuleType().String()
+	}
 
 	ut := &udpTracker{
 		PacketConn: conn,
@@ -146,13 +156,8 @@ func newUDPTracker(conn C.PacketConn, manager *Manager, metadata *C.Metadata, ru
 			KeepAlive:    time.Now(),
 			Metadata: metadata,
 			Chain:    conn.Chains(),
-			Rule:     "",
+			Rule:     ruleType,
 		},
-	}
-
-	if rule != nil {
-		ut.trackerInfo.Rule = rule.RuleType().String()
-		ut.trackerInfo.RulePayload = rule.Payload()
 	}
 
 	manager.Join(ut)
