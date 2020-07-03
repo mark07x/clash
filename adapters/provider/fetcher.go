@@ -5,7 +5,6 @@ import (
 	"crypto/md5"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/mark07x/clash/log"
@@ -13,7 +12,6 @@ import (
 
 var (
 	fileMode os.FileMode = 0666
-	dirMode  os.FileMode = 0755
 )
 
 type parser = func([]byte) (interface{}, error)
@@ -37,12 +35,10 @@ func (f *fetcher) VehicleType() VehicleType {
 }
 
 func (f *fetcher) Initial() (interface{}, error) {
-	var (
-		buf     []byte
-		err     error
-		isLocal bool
-	)
-	if stat, fErr := os.Stat(f.vehicle.Path()); fErr == nil {
+	var buf []byte
+	var err error
+	var isLocal bool
+	if stat, err := os.Stat(f.vehicle.Path()); err == nil {
 		buf, err = ioutil.ReadFile(f.vehicle.Path())
 		modTime := stat.ModTime()
 		f.updatedAt = &modTime
@@ -73,7 +69,7 @@ func (f *fetcher) Initial() (interface{}, error) {
 		}
 	}
 
-	if err := safeWrite(f.vehicle.Path(), buf); err != nil {
+	if err := ioutil.WriteFile(f.vehicle.Path(), buf, fileMode); err != nil {
 		return nil, err
 	}
 
@@ -105,7 +101,7 @@ func (f *fetcher) Update() (interface{}, bool, error) {
 		return nil, false, err
 	}
 
-	if err := safeWrite(f.vehicle.Path(), buf); err != nil {
+	if err := ioutil.WriteFile(f.vehicle.Path(), buf, fileMode); err != nil {
 		return nil, false, err
 	}
 
@@ -140,18 +136,6 @@ func (f *fetcher) pullLoop() {
 			f.onUpdate(elm)
 		}
 	}
-}
-
-func safeWrite(path string, buf []byte) error {
-	dir := filepath.Dir(path)
-
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		if err := os.MkdirAll(dir, dirMode); err != nil {
-			return err
-		}
-	}
-
-	return ioutil.WriteFile(path, buf, fileMode)
 }
 
 func newFetcher(name string, interval time.Duration, vehicle Vehicle, parser parser, onUpdate func(interface{})) *fetcher {

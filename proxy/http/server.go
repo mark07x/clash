@@ -45,7 +45,7 @@ func NewHttpProxy(addr string) (*HttpListener, error) {
 				continue
 			}
 			id := tunnel.SharedToken.MakeToken()
-			go HandleConn(c, hl.cache, id)
+			go handleConn(c, hl.cache, id)
 		}
 	}()
 
@@ -73,7 +73,7 @@ func canActivate(loginStr string, authenticator auth.Authenticator, cache *cache
 	return
 }
 
-func HandleConn(conn net.Conn, cache *cache.Cache, id uuid.UUID) {
+func handleConn(conn net.Conn, cache *cache.Cache, id uuid.UUID) {
 	br := bufio.NewReader(conn)
 	request, err := http.ReadRequest(br)
 	if err != nil || request.URL.Host == "" {

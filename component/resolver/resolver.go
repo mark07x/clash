@@ -5,25 +5,20 @@ import (
 	"net"
 	"strings"
 
-	"github.com/mark07x/clash/component/trie"
+	trie "github.com/mark07x/clash/component/domain-trie"
 )
 
 var (
 	// DefaultResolver aim to resolve ip
 	DefaultResolver Resolver
 
-	// DisableIPv6 means don't resolve ipv6 host
-	// default value is true
-	DisableIPv6 = true
-
 	// DefaultHosts aim to resolve hosts
 	DefaultHosts = trie.New()
 )
 
 var (
-	ErrIPNotFound   = errors.New("couldn't find ip")
-	ErrIPVersion    = errors.New("ip version error")
-	ErrIPv6Disabled = errors.New("ipv6 disabled")
+	ErrIPNotFound = errors.New("couldn't find ip")
+	ErrIPVersion  = errors.New("ip version error")
 )
 
 type Resolver interface {
@@ -68,10 +63,6 @@ func ResolveIPv4(host string) (net.IP, error) {
 
 // ResolveIPv6 with a host, return ipv6
 func ResolveIPv6(host string) (net.IP, error) {
-	if DisableIPv6 {
-		return nil, ErrIPv6Disabled
-	}
-
 	if node := DefaultHosts.Search(host); node != nil {
 		if ip := node.Data.(net.IP).To16(); ip != nil {
 			return ip, nil
@@ -111,12 +102,7 @@ func ResolveIP(host string) (net.IP, error) {
 	}
 
 	if DefaultResolver != nil {
-		if DisableIPv6 {
-			return DefaultResolver.ResolveIPv4(host)
-		}
 		return DefaultResolver.ResolveIP(host)
-	} else if DisableIPv6 {
-		return ResolveIPv4(host)
 	}
 
 	ip := net.ParseIP(host)

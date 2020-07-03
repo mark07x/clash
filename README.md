@@ -19,16 +19,15 @@
 
 ## Features
 
-- Local HTTP/HTTPS/SOCKS server with authentication support
-- VMess, Shadowsocks, Trojan, Snell protocol support for remote connections
-- Built-in DNS server that aims to minimize DNS pollution attack impact, supports DoH/DoT upstream and fake IP.
+- Local HTTP/HTTPS/SOCKS server with/without authentication
+- VMess, Shadowsocks, Trojan (experimental), Snell protocol support for remote connections. UDP is supported.
+- Built-in DNS server that aims to minimize DNS pollution attacks, supports DoH/DoT upstream. Fake IP is also supported.
 - Rules based off domains, GEOIP, IP CIDR or ports to forward packets to different nodes
 - Remote groups allow users to implement powerful rules. Supports automatic fallback, load balancing or auto select node based off latency
 - Remote providers, allowing users to get node lists remotely instead of hardcoding in config
-- Netfilter TCP redirecting. Deploy Clash on your Internet gateway with `iptables`.
-- Comprehensive HTTP RESTful API controller
+- Netfilter TCP redirecting. You can deploy Clash on your Internet gateway with `iptables`.
+- Comprehensive HTTP API controller
 
-<<<<<<< HEAD
 ## Install
 
 Clash requires Go >= 1.13. You can build it from source:
@@ -374,19 +373,14 @@ rules:
 
 ## Documentations
 https://clash.gitbook.io/
-=======
-## Getting Started
-Documentations are now moved to [GitHub Wiki](https://github.com/Dreamacro/clash/wiki).
->>>>>>> acd51bbc90dad86c593aba1ce84fc578f36702d6
 
 ## Credits
 
-* [riobard/go-shadowsocks2](https://github.com/riobard/go-shadowsocks2)
-* [v2ray/v2ray-core](https://github.com/v2ray/v2ray-core)
+[riobard/go-shadowsocks2](https://github.com/riobard/go-shadowsocks2)
+
+[v2ray/v2ray-core](https://github.com/v2ray/v2ray-core)
 
 ## License
-
-This software is released under the GPL-3.0 license.
 
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FDreamacro%2Fclash.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FDreamacro%2Fclash?ref=badge_large)
 
@@ -396,4 +390,4 @@ This software is released under the GPL-3.0 license.
 - [x] Redir proxy
 - [x] UDP support
 - [x] Connection manager
-- ~~[ ] Event API~~
+- [ ] Event API

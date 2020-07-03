@@ -3,7 +3,6 @@ package tunnel
 import (
 	"encoding/json"
 	"errors"
-	"strings"
 )
 
 type TunnelMode int
@@ -27,7 +26,7 @@ const (
 func (m *TunnelMode) UnmarshalJSON(data []byte) error {
 	var tp string
 	json.Unmarshal(data, &tp)
-	mode, exist := ModeMapping[strings.ToLower(tp)]
+	mode, exist := ModeMapping[tp]
 	if !exist {
 		return errors.New("invalid mode")
 	}
@@ -39,7 +38,7 @@ func (m *TunnelMode) UnmarshalJSON(data []byte) error {
 func (m *TunnelMode) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var tp string
 	unmarshal(&tp)
-	mode, exist := ModeMapping[strings.ToLower(tp)]
+	mode, exist := ModeMapping[tp]
 	if !exist {
 		return errors.New("invalid mode")
 	}
@@ -60,11 +59,11 @@ func (m TunnelMode) MarshalYAML() (interface{}, error) {
 func (m TunnelMode) String() string {
 	switch m {
 	case Global:
-		return "global"
+		return "Global"
 	case Rule:
-		return "rule"
+		return "Rule"
 	case Direct:
-		return "direct"
+		return "Direct"
 	default:
 		return "Unknown"
 	}

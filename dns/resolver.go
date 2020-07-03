@@ -121,7 +121,7 @@ func (r *Resolver) exchangeWithoutCache(m *D.Msg) (msg *D.Msg, err error) {
 		}
 
 		putMsgToCache(r.lruCache, q.String(), msg)
-		if r.mapping || r.fakeip {
+		if r.mapping {
 			ips := r.msgToIP(msg)
 			for _, ip := range ips {
 				putMsgToCache(r.lruCache, ip.String(), msg)
@@ -151,10 +151,7 @@ func (r *Resolver) exchangeWithoutCache(m *D.Msg) (msg *D.Msg, err error) {
 // IPToHost return fake-ip or redir-host mapping host
 func (r *Resolver) IPToHost(ip net.IP) (string, bool) {
 	if r.fakeip {
-		record, existed := r.pool.LookBack(ip)
-		if existed {
-			return record, true
-		}
+		return r.pool.LookBack(ip)
 	}
 
 	cache, _ := r.lruCache.Get(ip.String())

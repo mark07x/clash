@@ -5,13 +5,13 @@ import (
 	"github.com/mark07x/clash/bridge"
 	"io/ioutil"
 	"os"
-	"sync"
+	"path/filepath"
 
 	"github.com/mark07x/clash/adapters/provider"
 	"github.com/mark07x/clash/component/auth"
 	"github.com/mark07x/clash/component/dialer"
+	trie "github.com/mark07x/clash/component/domain-trie"
 	"github.com/mark07x/clash/component/resolver"
-	"github.com/mark07x/clash/component/trie"
 	"github.com/mark07x/clash/config"
 	C "github.com/mark07x/clash/constant"
 	"github.com/mark07x/clash/dns"
@@ -21,15 +21,30 @@ import (
 	"github.com/mark07x/clash/tunnel"
 )
 
-var (
-	mux sync.Mutex
-)
+// forward compatibility before 1.0
+func readRawConfig(path string) ([]byte, error) {
+	data, err := ioutil.ReadFile(path)
+	if err == nil && len(data) != 0 {
+		return data, nil
+	}
+
+	if filepath.Ext(path) != ".yaml" {
+		return nil, err
+	}
+
+	path = path[:len(path)-5] + ".yml"
+	if _, fallbackErr := os.Stat(path); fallbackErr == nil {
+		return ioutil.ReadFile(path)
+	}
+
+	return data, err
+}
 
 func readConfig(path string) ([]byte, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return nil, err
 	}
-	data, err := ioutil.ReadFile(path)
+	data, err := readRawConfig(path)
 	if err != nil {
 		return nil, err
 	}
@@ -63,11 +78,10 @@ func ParseWithBytes(buf []byte) (*config.Config, error) {
 
 // ApplyConfig dispatch configure to all parts
 func ApplyConfig(cfg *config.Config, force bool) {
-	mux.Lock()
-	defer mux.Unlock()
-
 	updateUsers(cfg.Users)
-	updateGeneral(cfg.General, force)
+	if force {
+		updateGeneral(cfg.General)
+	}
 	updateProxies(cfg.Proxies, cfg.Providers)
 	updateRules(cfg.Rules)
 	updateDNS(cfg.DNS)
@@ -83,23 +97,31 @@ func GetGeneral() *config.General {
 	}
 
 	general := &config.General{
-		Inbound: config.Inbound{
-			Port:           ports.Port,
-			SocksPort:      ports.SocksPort,
-			RedirPort:      ports.RedirPort,
-			MixedPort:      ports.MixedPort,
-			Authentication: authenticator,
-			AllowLan:       P.AllowLan(),
-			BindAddress:    P.BindAddress(),
-		},
-		Mode:     tunnel.Mode(),
-		LogLevel: log.Level(),
+		Port:           ports.Port,
+		SocksPort:      ports.SocksPort,
+		RedirPort:      ports.RedirPort,
+		Authentication: authenticator,
+		AllowLan:       P.AllowLan(),
+		BindAddress:    P.BindAddress(),
+		Mode:           tunnel.Mode(),
+		LogLevel:       log.Level(),
 	}
 
 	return general
 }
 
-func updateExperimental(c *config.Config) {}
+func updateExperimental(c *config.Config) {
+	cfg := c.Experimental
+
+	tunnel.UpdateExperimental(cfg.IgnoreResolveFail)
+	if cfg.Interface != "" && c.DNS.Enable {
+		dialer.DialHook = dialer.DialerWithInterface(cfg.Interface)
+		dialer.ListenPacketHook = dialer.ListenPacketWithInterface(cfg.Interface)
+	} else {
+		dialer.DialHook = nil
+		dialer.ListenPacketHook = nil
+	}
+}
 
 func updateDNS(c *config.DNS) {
 	if c.Enable == false {
@@ -133,7 +155,7 @@ func updateDNS(c *config.DNS) {
 	}
 }
 
-func updateHosts(tree *trie.DomainTrie) {
+func updateHosts(tree *trie.Trie) {
 	resolver.DefaultHosts = tree
 }
 
@@ -145,22 +167,9 @@ func updateRules(rules []C.Rule) {
 	tunnel.UpdateRules(rules)
 }
 
-func updateGeneral(general *config.General, force bool) {
+func updateGeneral(general *config.General) {
 	log.SetLevel(general.LogLevel)
 	tunnel.SetMode(general.Mode)
-	resolver.DisableIPv6 = !general.IPv6
-
-	if general.Interface != "" {
-		dialer.DialHook = dialer.DialerWithInterface(general.Interface)
-		dialer.ListenPacketHook = dialer.ListenPacketWithInterface(general.Interface)
-	} else {
-		dialer.DialHook = nil
-		dialer.ListenPacketHook = nil
-	}
-
-	if !force {
-		return
-	}
 
 	allowLan := general.AllowLan
 	P.SetAllowLan(allowLan)
@@ -178,10 +187,6 @@ func updateGeneral(general *config.General, force bool) {
 
 	if err := P.ReCreateRedir(general.RedirPort); err != nil {
 		log.Errorln("Start Redir server error: %s", err.Error())
-	}
-
-	if err := P.ReCreateMixed(general.MixedPort); err != nil {
-		log.Errorln("Start Mixed(http and socks5) server error: %s", err.Error())
 	}
 }
 
