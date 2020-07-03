@@ -6,6 +6,7 @@ require (
 	github.com/Dreamacro/clash v1.0.0
 	github.com/Dreamacro/go-shadowsocks2 v0.1.5
 	github.com/eapache/queue v1.1.0 // indirect
+	github.com/eycorsican/go-tun2socks v1.16.9
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-chi/cors v1.1.1
 	github.com/go-chi/render v1.0.1
