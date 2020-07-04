@@ -46,7 +46,7 @@ jobs:
         run: gomobile bind -target=ios -o=bin/Clash.framework
         
       - name: Tar files
-        if:
+        if: startsWith(github.ref, 'refs/tags/')
         run: tar -czf bin/Clash.framework.tar.gz -C bin Clash.framework
 
       - name: Upload Release
