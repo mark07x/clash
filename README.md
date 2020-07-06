@@ -7,13 +7,13 @@
 
 <p align="center">
   <a href="https://github.com/mark07x/clash/actions">
-    <img src="https://img.shields.io/github/workflow/status/Dreamacro/clash/Go?style=flat-square" alt="Github Actions">
+    <img src="https://img.shields.io/github/workflow/status/mark07x/clash/Go?style=flat-square" alt="Github Actions">
   </a>
   <a href="https://goreportcard.com/report/github.com/mark07x/clash">
     <img src="https://goreportcard.com/badge/github.com/mark07x/clash?style=flat-square">
   </a>
   <a href="https://github.com/mark07x/clash/releases">
-    <img src="https://img.shields.io/github/release/Dreamacro/clash/all.svg?style=flat-square">
+    <img src="https://img.shields.io/github/release/mark07x/clash/all.svg?style=flat-square">
   </a>
 </p>
 
