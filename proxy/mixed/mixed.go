@@ -1,15 +1,17 @@
 package mixed
 
 import (
+	"github.com/gofrs/uuid"
+	"github.com/mark07x/clash/tunnel"
 	"net"
 	"time"
 
-	"github.com/Dreamacro/clash/common/cache"
-	"github.com/Dreamacro/clash/component/socks5"
-	"github.com/Dreamacro/clash/log"
+	"github.com/mark07x/clash/common/cache"
+	"github.com/mark07x/clash/component/socks5"
+	"github.com/mark07x/clash/log"
 
-	"github.com/Dreamacro/clash/proxy/http"
-	"github.com/Dreamacro/clash/proxy/socks"
+	"github.com/mark07x/clash/proxy/http"
+	"github.com/mark07x/clash/proxy/socks"
 )
 
 type MixedListener struct {
@@ -37,7 +39,8 @@ func NewMixedProxy(addr string) (*MixedListener, error) {
 				}
 				continue
 			}
-			go handleConn(c, ml.cache)
+			id := tunnel.SharedToken.MakeToken()
+			go handleConn(c, ml.cache, id)
 		}
 	}()
 
@@ -53,7 +56,7 @@ func (l *MixedListener) Address() string {
 	return l.address
 }
 
-func handleConn(conn net.Conn, cache *cache.Cache) {
+func handleConn(conn net.Conn, cache *cache.Cache, id uuid.UUID) {
 	bufConn := NewBufferedConn(conn)
 	head, err := bufConn.Peek(1)
 	if err != nil {
@@ -61,9 +64,9 @@ func handleConn(conn net.Conn, cache *cache.Cache) {
 	}
 
 	if head[0] == socks5.Version {
-		socks.HandleSocks(bufConn)
+		socks.HandleSocks(bufConn, id)
 		return
 	}
 
-	http.HandleConn(bufConn, cache)
+	http.HandleConn(bufConn, cache, id)
 }

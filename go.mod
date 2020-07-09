@@ -3,7 +3,6 @@ module github.com/mark07x/clash
 go 1.14
 
 require (
-	github.com/Dreamacro/clash v1.0.0
 	github.com/Dreamacro/go-shadowsocks2 v0.1.5
 	github.com/eapache/queue v1.1.0 // indirect
 	github.com/eycorsican/go-tun2socks v1.16.9
