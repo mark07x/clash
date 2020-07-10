@@ -28,7 +28,6 @@
 - Netfilter TCP redirecting. Deploy Clash on your Internet gateway with `iptables`.
 - Comprehensive HTTP RESTful API controller
 
-<<<<<<< HEAD
 ## Install
 
 Clash requires Go >= 1.13. You can build it from source:
